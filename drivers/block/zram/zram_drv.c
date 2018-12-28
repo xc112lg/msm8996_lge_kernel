@@ -586,17 +586,15 @@ retry:
 	if (test_and_set_bit(blk_idx, zram->bitmap))
 		goto retry;
 
-	atomic64_inc(&zram->stats.bd_count);
 	return blk_idx;
 }
 
-static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
+static void free_block_bdev(struct zram *zram, unsigned long entry)
 {
 	int was_set;
 
-	was_set = test_and_clear_bit(blk_idx, zram->bitmap);
+	was_set = test_and_clear_bit(entry, zram->bitmap);
 	WARN_ON_ONCE(!was_set);
-	atomic64_dec(&zram->stats.bd_count);
 }
 
 static void zram_page_end_io(struct bio *bio)
