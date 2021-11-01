@@ -10,6 +10,66 @@ fwabs := $(addprefix $(srctree)/,$(filter-out /%,$(fwdir)))$(filter /%,$(fwdir))
 
 fw-external-y := $(subst $(quote),,$(CONFIG_EXTRA_FIRMWARE))
 
+# From prev 4.4 source: There are three cases to care about:
+# 1. Building kernel with CONFIG_FIRMWARE_IN_KERNEL=y -- $(fw-shipped-y) should
+#    include the firmware files to include, according to .config
+# 2. 'make modules_install', which will install firmware for modules, and 
+#    _also_ for the in-kernel drivers when CONFIG_FIRMWARE_IN_KERNEL=n
+# 3. 'make firmware_install', which installs all firmware, unconditionally.
+
+# For the former two cases we want $(fw-shipped-y) and $(fw-shipped-m) to be
+# accurate. In the latter case it doesn't matter -- it'll use $(fw-shipped-all).
+# But be aware that the config file might not be included at all.
+
+# LG firmware
+ifdef CONFIG_MACH_MSM8996_LUCYE
+fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
+	touch/lucye/L1L57P1_8_23_SW49407_Lucy_VB.img \
+	touch/lucye/L1L57P2_1_03.img \
+	touch/lucye/L1L57P2_1_05.img \
+	touch/lucye/lucye_limit.txt \
+	touch/lucye/lucye_limit_mfts.txt
+endif
+ifdef CONFIG_MACH_MSM8996_H1
+# Old, or for Japanese model.
+# PLG468-V1.20-PR1901334-DS5.2.200.1.1002_50055194504C47343638.img,
+# h1_hdk_limit_mfts_curved.txt, h1_hdk_limit_mfts_flat.txt, h1_hdk_limit_mfts_folder.txt
+fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
+	touch/h1/H1_LG4945_0.01.img \
+	touch/h1/L0L53P1_1_14.img \
+	touch/h1/L0L53P1_1_22.img \
+	touch/h1/h1_limit.txt \
+	touch/h1/h1_limit_mfts.txt
+endif
+ifdef CONFIG_MACH_MSM8996_ELSA
+# Old, or for Japanese model.
+# L1L52P1_1_05.img, L1L52P1_1_13.img, L1L57P1_1_13.img
+fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
+	touch/elsa/L0L57P1_1_35.img \
+	touch/elsa/L0L57P1_2_00.img \
+	touch/elsa/L1L57P1_1_14.img \
+	touch/elsa/elsa_limit.txt \
+	touch/elsa/elsa_limit_mfts.txt
+endif
+
+fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
+
+########## These might well be useless now, but are kept for compatibility sake
+
+quiet_cmd_ihex  = IHEX    $@
+      cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
+
+quiet_cmd_copy  = COPY    $@
+      cmd_copy  = cp $< $@
+
+quiet_cmd_ihex2fw  = IHEX2FW $@
+      cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
+
+quiet_cmd_h16tofw  = H16TOFW $@
+      cmd_h16tofw  = $(objtree)/$(obj)/ihex2fw -w $< $@
+
+##########
+
 quiet_cmd_fwbin = MK_FW   $@
       cmd_fwbin = FWNAME="$(patsubst firmware/%.gen.S,%,$@)";		     \
 		  FWSTR="$(subst /,_,$(subst .,_,$(subst -,_,$(patsubst	     \
@@ -42,14 +102,18 @@ wordsize_deps := $(wildcard include/config/64bit.h include/config/32bit.h \
 		include/config/x86_32.h include/config/x86_64.h \
 		firmware/Makefile)
 
+$(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps)
+	$(call cmd,fwbin,$(patsubst %.gen.S,%,$@))
 $(patsubst %,$(obj)/%.gen.S, $(fw-external-y)): %: $(wordsize_deps) \
 		include/config/extra/firmware/dir.h
 	$(call cmd,fwbin,$(fwabs)/$(patsubst $(obj)/%.gen.S,%,$@))
 
 # The .o files depend on the binaries directly; the .S files don't.
+$(patsubst %,$(obj)/%.gen.o, $(fw-shipped-y)): %.gen.o: %
 $(patsubst %,$(obj)/%.gen.o, $(fw-external-y)): $(obj)/%.gen.o: $(fwdir)/%
 
 obj-y				 += $(patsubst %,%.gen.o, $(fw-external-y))
+obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(patsubst %,%.gen.o, $(fw-shipped-y))
 
 ifeq ($(KBUILD_SRC),)
 # Makefile.build only creates subdirectories for O= builds, but external
@@ -57,5 +121,9 @@ ifeq ($(KBUILD_SRC),)
 _dummy := $(foreach d,$(addprefix $(obj)/,$(dir $(fw-external-y))), $(shell [ -d $(d) ] || mkdir -p $(d)))
 endif
 
-targets := $(patsubst $(obj)/%,%, \
+targets := $(fw-shipped-) $(patsubst $(obj)/%,%, \
                                 $(shell find $(obj) -name \*.gen.S 2>/dev/null))
+
+# Without this, built-in.o won't be created when it's empty, and the
+# final vmlinux link will fail.
+obj- := dummy
