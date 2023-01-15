@@ -4,7 +4,7 @@
 #
 # This script builds zips from the existing folders in the "OUTDIR" directory.
 # This is so that you can make adjustments to the zip without recompiling
-# the entire kernel. Changes are pulled from the source ("MK2DIR" directory),
+# the entire kernel. Changes are pulled from the source ("AK3DIR" directory),
 # except tools or patches/ramdisk files.
 #
 # Specify the device, i.e ./rezip.sh H850
@@ -28,19 +28,19 @@ VER=$(cat "${RDIR}/VERSION") \
 		|| ABORT "No version file found in ${RDIR}"
 
 OUTDIR=out
-MK2DIR=${RDIR}/mk2000
+AK3DIR=${RDIR}/Swan2000
 INITRC_NAME=init.mktweaks.rc
-BANNER_BETA=${MK2DIR}/banner-beta
+BANNER_BETA=${AK3DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
-INIT_FILE_G6=${MK2DIR}/init-g6
-INIT_FILE=${MK2DIR}/init
-BANNER=${MK2DIR}/banner
+INIT_FILE_G6=${AK3DIR}/init-g6
+INIT_FILE=${AK3DIR}/init
+BANNER=${AK3DIR}/banner
 
 [ -d "$DDIR" ] || ABORT "$DEVICE directory doesn't exist!"
 
 CLEAN_ZIP() {
 	echo "Remove old zip..."
-	rm -f $RDIR/$OUTDIR/${DEVICE}_${VER}-mk2000.zip
+	rm -f $RDIR/$OUTDIR/${DEVICE}_${VER}-Swan2000.zip
 	rm -f $DDIR/ramdisk/*
 }
 
@@ -53,9 +53,9 @@ COPY_AK() {
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
 	fi
-	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
+	source $AK3DIR/ak-template.sh > $DDIR/anykernel.sh \
 		|| ABORT "Failed to generate *anykernel.sh*"
-	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
+	cp $AK3DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
 }
 
@@ -76,7 +76,7 @@ COPY_INIT() {
 ZIP_UP() {
 	echo "Creating AnyKernel3 archive..."
 	cd $DDIR
-	zip -7qr $RDIR/$OUTDIR/${DEVICE}_${VER}-mk2000.zip * \
+	zip -7qr $RDIR/$OUTDIR/${DEVICE}_${VER}-Swan2000.zip * \
 		|| ABORT "Failed to create zip archive"
 }
 
@@ -87,4 +87,4 @@ CLEAN_ZIP &&
 COPY_AK &&
 COPY_INIT &&
 ZIP_UP &&
-echo -e $COLOR_G"Finished! -- Look in *${OUTDIR}* folder."
+echo -e $COLOR_G"Finished! -- Look inside the *${OUTDIR}* folder."

@@ -24,7 +24,7 @@ OUTDIR=$(dirname "$RDIR")
 OUTFILE=${DEVICE}_config_regen
 
 # directory containing cross-compiler
-TOOLCHAIN=$HOME/mk2000/toolchain/stendro/aarch64-elf/bin/aarch64-elf-
+TOOLCHAIN=$HOME/toolchains/aarch64-elf/bin/aarch64-elf-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN

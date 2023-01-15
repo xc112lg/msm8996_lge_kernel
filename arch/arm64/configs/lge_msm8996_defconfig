@@ -200,3 +200,6 @@ CONFIG_PSTORE_RAM=y
 
 # Disable duplicate "qcrypto" driver registration, fixing qualcomm's crypto engine init
 CONFIG_CRYPTO_DEV_QCE=n
+
+# Swan2000 has override priority
+include swan2000_config

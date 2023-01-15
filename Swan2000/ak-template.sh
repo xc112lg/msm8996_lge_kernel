@@ -29,7 +29,7 @@ cat << EOF
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=$DEVICE Kernel by askermk2000 @ xda-developers
+kernel.string=$DEVICE Kernel by askermk2000 & AShiningRay @ xda-developers
 do.devicecheck=1
 do.modules=0
 do.ssdtrim=0
@@ -61,8 +61,8 @@ chown -R root:root \$ramdisk/*;
 dump_boot;
 
 ## Ramdisk modifications
-# add mktweaks
-# append_file init.rc mktweaks "init_rc-mod";
+# add swan2ktweaks
+# append_file init.rc swan2ktweaks "init_rc-mod";
 
 write_boot;
 ## end install

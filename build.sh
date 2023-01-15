@@ -142,9 +142,29 @@ else
   export CROSS_COMPILE_ARM32=$GCC_COMP_32
 fi
 
+# In case a model isn't passed as an argument, this block acts as a fallback
+MODEL_ARRAY=("H850" "H830" "RS988" "H870" "US997" "H872" "H910" "H918" "H990" "LS997" "US996" "VS995")
+FALLBACK_GET_VARIANT() {
+	if [[ ${SELECTED_MODEL} = "" ]]; then
+		echo -e "List of available variants:"
+		echo -e "G5  -> [$COLOR_C H850, H830, RS988 $COLOR_N]"
+		echo -e "G6  -> [$COLOR_C H870, US997, H872 $COLOR_N]"
+		echo -e "V20 -> [$COLOR_C H910, H918, H990, LS997, US996, VS995 $COLOR_N]"
+		read -p "Please select your model:" DEVICE
+	fi
+
+	# This checks if the user's model is supported by the kernel.
+	if [[ " ${MODEL_ARRAY[*]} " != *" ${DEVICE} "* ]];	then
+		echo -e "${COLOR_R}Your model wasn't found. Please check for errors (such as lower-case).${COLOR_N} \n"
+		FALLBACK_GET_VARIANT
+	fi
+}
+
 # selected device
 [ "$1" ] && DEVICE=$1
-[ "$DEVICE" ] || ABORT "No device specified!"
+[ "$DEVICE" ] || FALLBACK_GET_VARIANT
+
+
 
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
@@ -185,7 +205,7 @@ fi
 	|| ABORT "Cross-compiler not found at: ${GCC_COMP}gcc"
 
 [ -x "${GCC_COMP_32}gcc" ] \
-	|| echo -e $COLOR_R"32-bit compiler not found, required for COMPAT_VDSO."
+	|| echo -e $COLOR_R"32-bit compiler not found, required for COMPAT_VDSO (VDSO32)."
 
 if [ "$USE_CCACHE" = "yes" ]; then
 	command -v ccache >/dev/null 2>&1 \
@@ -209,7 +229,7 @@ SETUP_BUILD() {
 	echo "$DEVICE" > $BDIR/DEVICE \
 		|| echo -e $COLOR_R"Failed to reflect device!"
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
-		|| ABORT "Failed to set up build."
+		|| ABORT "Failed to set up the kernel build."
 }
 
 BUILD_KERNEL() {
@@ -219,7 +239,7 @@ BUILD_KERNEL() {
 		read -rp "Build failed. Retry? " do_retry
 		case $do_retry in
 			Y|y) continue ;;
-			*) ABORT "Compilation discontinued." ;;
+			*) ABORT "Compilation aborted." ;;
 		esac
 	done
 	TIMESTAMP2=$(date +%s)
@@ -261,12 +281,12 @@ fi
 if [ "$ASK_CLEAN" = "yes" ]; then
   while true; do
     echo -e $COLOR_Y
-    read -p "Same device as last build. Do you wish clean the build directory?" yn
+    read -p "Same device as the last build. Do you wish to clean the build directory?" yn
     echo -e $COLOR_N
     case $yn in
       [Yy]* ) CLEAN_BUILD && break ;;
       [Nn]* ) break ;;
-      * ) echo -e $COLOR_R"Please answer y or n"$COLOR_N ;;
+      * ) echo -e $COLOR_R"Please answer 'y' or 'n'"$COLOR_N ;;
     esac
   done
 else
@@ -277,4 +297,4 @@ BUILD_KERNEL
 INSTALL_MODULES
 PREPARE_NEXT
 echo -e $COLOR_G"Finished building ${DEVICE} ${VER} -- Kernel compilation took"$COLOR_R $BTIME
-echo -e $COLOR_P"Run ./copy_finished.sh to create AnyKernel zip."
+echo -e $COLOR_P"Run './copy_finished.sh' to create the flashable AnyKernel zip."
