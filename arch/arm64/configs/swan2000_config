@@ -184,6 +184,9 @@ CONFIG_SWAN2K_UNDERVOLTS_SAFE=y
 # should use recent GCC version
 # CONFIG_LTO=y
 
+# Enable GCC Optimization Level O3
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+
 # Enable kernel debugging, shouldn't be used in a stable/use-ready build.
 CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
 CONFIG_CMDLINE_EXTEND=y
