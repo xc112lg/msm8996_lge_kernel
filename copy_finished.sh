@@ -15,7 +15,7 @@ COLOR_R="\033[0;31m"
 COLOR_G="\033[1;32m"
 
 # intended android version
-ADROID="Android 11"
+ADROID="Android 12.1/13"
 
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
