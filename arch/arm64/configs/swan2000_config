@@ -171,8 +171,9 @@ CONFIG_SWAN2K_UNDERVOLTS_SAFE=y
 # Gaming Mode (basically overclocks CPU + GPU). Can be enabled alongside undervolts.
 CONFIG_SWAN2K_GAMING_MODE=n
 
-# Enable GCC Optimization Level O3
-CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+# Disable GCC Optimization Level O3
+# Enabling O3 seems to break the Touch Screen driver on g6 (luyce) 
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=n
 
 # Enable kernel debugging, shouldn't be used in a stable/use-ready build.
 #CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
