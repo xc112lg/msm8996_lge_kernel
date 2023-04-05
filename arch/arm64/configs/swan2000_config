@@ -231,10 +231,6 @@ CONFIG_SWAN2K_UNDERVOLTS_SAFE=y
 # Gaming Mode (basically overclocks CPU + GPU). Can be enabled alongside undervolts.
 CONFIG_SWAN2K_GAMING_MODE=n
 
-# Force-disable GCC Optimization Level O3
-# Enabling O3 seems to break the Touch Screen driver on LG G6 (lucye) 
-CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=n
-
 
 
 ###### Enable Swan2000 kernel debugging, shouldn't be used in a stable/use-ready build.
