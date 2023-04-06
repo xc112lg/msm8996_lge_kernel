@@ -198,7 +198,11 @@ CONFIG_REGULATOR_STUB=y
 # Enable DEAD_CODE_ELIMINATION to reduce kernel size
 CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
 
-# Enable Ramoops Support while the kernel is still in debug phase.
+# Enable Optimized Inlining compiler flag to better optimize
+# function inlines with newer GCC toolchains
+CONFIG_OPTIMIZE_INLINING=y
+
+# Enable Ramoops Support while the kernel is still in debug phase
 CONFIG_PSTORE=y
 CONFIG_PSTORE_CONSOLE=y
 CONFIG_PSTORE_PMSG=y
