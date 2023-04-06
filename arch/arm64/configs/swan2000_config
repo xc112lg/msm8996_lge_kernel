@@ -195,6 +195,9 @@ CONFIG_SERIAL_MSM=y
 CONFIG_COMPAT_BRK=y
 CONFIG_REGULATOR_STUB=y
 
+# Enable DEAD_CODE_ELIMINATION to reduce kernel size
+CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
+
 # Enable Ramoops Support while the kernel is still in debug phase.
 CONFIG_PSTORE=y
 CONFIG_PSTORE_CONSOLE=y
