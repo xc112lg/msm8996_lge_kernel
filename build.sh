@@ -104,14 +104,16 @@ GCC_COMP_32=$HOME/toolchains/arm-eabi/bin/arm-eabi-
 #
 # compiler version
 # gnu gcc or newer arm (linaro) gcc
-if $(${GCC_COMP}gcc --version | grep -q '(GCC)'); then
-GCC_STRING=$(${GCC_COMP}gcc --version | head -n1 | cut -f2 -d')')
-GCC_VER="GCC$GCC_STRING"
+if $(${GCC_COMP}gcc --version | grep -q '(GCC)') || 
+$(${GCC_COMP}gcc --version | grep -q '(Eva GCC)'); then
+	GCC_STRING=$(${GCC_COMP}gcc --version | head -n1 | cut -f2 -d')')
+	GCC_VER="GCC$GCC_STRING"
 else # old linaro gcc
-GCC_VER="$(${GCC_COMP}gcc --version | head -n1 | cut -f1 -d')' | \
+	GCC_VER="$(${GCC_COMP}gcc --version | head -n1 | cut -f1 -d')' | \
 	cut -f2 -d'(')"
-if $(echo $GCC_VER | grep -q '~dev'); then
-  GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
+	
+	if $(echo $GCC_VER | grep -q '~dev'); then
+  		GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
 fi
 fi
 
