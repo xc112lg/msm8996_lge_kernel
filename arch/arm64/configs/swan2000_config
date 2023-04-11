@@ -235,7 +235,7 @@ CONFIG_DEFAULT_WESTWOOD=y
 CONFIG_SWAN2K_UNDERVOLTS_UNSAFE=n
 CONFIG_SWAN2K_UNDERVOLTS_SAFE=y
 
-# Gaming Mode (basically overclocks CPU + GPU). Can be enabled alongside undervolts.
+# Gaming Mode (basically overclocks CPU + GPU + DDR). Can be enabled alongside undervolts.
 CONFIG_SWAN2K_GAMING_MODE=n
 
 
