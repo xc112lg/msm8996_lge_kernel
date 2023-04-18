@@ -36,7 +36,7 @@
 # US996		= US Cellular & Unlocked (US)
 #		LGUS996  (LG V20)
 #
-# US996Dirty	= US Cellular & Unlocked (US)
+# US996D	= US Cellular & Unlocked (US)
 #		LGUS996  (LG V20) (Unlocked with Engineering Bootloader)
 #
 # VS995		= Verizon (US)
@@ -145,13 +145,13 @@ else
 fi
 
 # In case a model isn't passed as an argument, this block acts as a fallback
-MODEL_ARRAY=("H850" "H830" "RS988" "H870" "US997" "H872" "H910" "H918" "H990" "LS997" "US996" "VS995")
+MODEL_ARRAY=("H850" "H830" "RS988" "H870" "US997" "H872" "H910" "H918" "H990" "LS997" "US996" "US996D" "VS995")
 FALLBACK_GET_VARIANT() {
 	if [[ ${SELECTED_MODEL} = "" ]]; then
 		echo -e "List of available variants:"
 		echo -e "G5  -> [$COLOR_C H850, H830, RS988 $COLOR_N]"
 		echo -e "G6  -> [$COLOR_C H870, US997, H872 $COLOR_N]"
-		echo -e "V20 -> [$COLOR_C H910, H918, H990, LS997, US996, VS995 $COLOR_N]"
+		echo -e "V20 -> [$COLOR_C H910, H918, H990, LS997, US996, US996D (Dirtysanta), VS995 $COLOR_N]"
 		read -p "Please select your model:" DEVICE
 	fi
 
@@ -189,8 +189,8 @@ elif [ "$DEVICE" = "H990" ]; then
   DEVICE_DEFCONFIG=lineageos_h990_defconfig
 elif [ "$DEVICE" = "US996" ]; then
   DEVICE_DEFCONFIG=lineageos_us996_defconfig
-elif [ "$DEVICE" = "US996Dirty" ]; then
-  DEVICE_DEFCONFIG=lineageos_us996-dirty_defconfig
+elif [ "$DEVICE" = "US996D" ]; then
+  DEVICE_DEFCONFIG=lineageos_us996d_defconfig
 elif [ "$DEVICE" = "VS995" ]; then
   DEVICE_DEFCONFIG=lineageos_vs995_defconfig
 elif [ "$DEVICE" = "LS997" ]; then
