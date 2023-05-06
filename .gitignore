@@ -36,6 +36,7 @@
 *.ll
 modules.builtin
 Module.symvers
+zBuild_all.log
 *.dwo
 *.su
 

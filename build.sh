@@ -67,6 +67,9 @@
 #
 ################################# CONFIG #################################
 
+# Assume build_all is not being used, will be automatically changed if it is
+SINGLEBUILD="yes"
+
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
 
@@ -166,7 +169,12 @@ FALLBACK_GET_VARIANT() {
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || FALLBACK_GET_VARIANT
 
-
+# Checks if the build_all script isn't being used
+if [ "$2" = "build_all" ]; then
+    SINGLEBUILD="no"
+else
+    SINGLEBUILD="yes"
+fi
 
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
@@ -196,7 +204,7 @@ elif [ "$DEVICE" = "VS995" ]; then
 elif [ "$DEVICE" = "LS997" ]; then
   DEVICE_DEFCONFIG=lineageos_ls997_defconfig
 else
-  ABORT "Invalid device specified! Make sure to use upper-case."
+  ABORT "Invalid device '${DEVICE}' specified! Make sure to use upper-case."
 fi
 
 # check for stuff
@@ -230,32 +238,54 @@ SETUP_BUILD() {
 	mkdir -p $BDIR
 	echo "$DEVICE" > $BDIR/DEVICE \
 		|| echo -e $COLOR_R"Failed to reflect device!"
-	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
-		|| ABORT "Failed to set up the kernel build."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
+		    || ABORT "Failed to set up the kernel build."
+    else # build_all will send make output to a file
+        make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" &> zBuild_all.log \
+		    || ABORT "Failed to set up the kernel build."
+    fi
 }
 
 BUILD_KERNEL() {
-	echo -e $COLOR_G"Compiling kernel..."$COLOR_N
-	TIMESTAMP1=$(date +%s)
-	while ! make -C "$RDIR" O=$BDIR -j"$THREADS"; do
-		read -rp "Build failed. Retry? " do_retry
-		case $do_retry in
-			Y|y) continue ;;
-			*) ABORT "Compilation aborted." ;;
-		esac
-	done
-	TIMESTAMP2=$(date +%s)
-	BSEC=$((TIMESTAMP2-TIMESTAMP1))
-	BTIME=$(printf '%02dm:%02ds' $(($BSEC/60)) $(($BSEC%60)))
+	    echo -e $COLOR_G"Compiling kernel for ${DEVICE}..."$COLOR_N
+	    TIMESTAMP1=$(date +%s)
+    if [ $SINGLEBUILD = "yes" ]; then
+        while ! make -C "$RDIR" O=$BDIR -j"$THREADS"; do
+		    read -rp "Build failed. Retry? " do_retry
+		    case $do_retry in
+			    Y|y) continue ;;
+			    *) ABORT "Compilation aborted." ;;
+		    esac
+	    done
+    else # build_all will send compile logs to a file
+	    while ! make -C "$RDIR" O=$BDIR -j"$THREADS" &> zBuild_all.log; do
+		    read -rp "Build failed. Retry? " do_retry
+		    case $do_retry in
+			    Y|y) continue ;;
+			    *) ABORT "Compilation aborted." ;;
+		    esac
+	    done
+    fi
+	    TIMESTAMP2=$(date +%s)
+	    BSEC=$((TIMESTAMP2-TIMESTAMP1))
+	    BTIME=$(printf '%02dm:%02ds' $(($BSEC/60)) $(($BSEC%60)))
 }
 
 INSTALL_MODULES() {
 	grep -q 'CONFIG_MODULES=y' $BDIR/.config || return 0
 	echo -e $COLOR_G"Installing kernel modules..."$COLOR_N
-	make -C "$RDIR" O=$BDIR \
-		INSTALL_MOD_PATH="." \
-		INSTALL_MOD_STRIP=1 \
-		modules_install
+    if [ $SINGLEBUILD = "yes" ]; then
+        make -C "$RDIR" O=$BDIR \
+	        INSTALL_MOD_PATH="." \
+	        INSTALL_MOD_STRIP=1 \
+	        modules_install
+    else # build_all will send module logs to a file
+        make -C "$RDIR" O=$BDIR \
+            INSTALL_MOD_PATH="." \
+            INSTALL_MOD_STRIP=1 \
+            modules_install &> zBuild_all.log
+    fi
 	rm $BDIR/lib/modules/*/build $BDIR/lib/modules/*/source
 }
 
@@ -280,23 +310,30 @@ fi
 
 # ask before cleaning if device
 # is the same as previous build
-if [ "$ASK_CLEAN" = "yes" ]; then
-  while true; do
-    echo -e $COLOR_Y
-    read -p "Same device as the last build. Do you wish to clean the build directory?" yn
-    echo -e $COLOR_N
-    case $yn in
-      [Yy]* ) CLEAN_BUILD && break ;;
-      [Nn]* ) break ;;
-      * ) echo -e $COLOR_R"Please answer 'y' or 'n'"$COLOR_N ;;
-    esac
-  done
-else
-CLEAN_BUILD
+if [ $SINGLEBUILD = "yes" ]; then
+    if [ "$ASK_CLEAN" = "yes" ]; then
+      while true; do
+        echo -e $COLOR_Y
+        read -p "Same device as the last build. Do you wish to clean the build directory?" yn
+        echo -e $COLOR_N
+        case $yn in
+          [Yy]* ) CLEAN_BUILD && break ;;
+          [Nn]* ) break ;;
+          * ) echo -e $COLOR_R"Please answer 'y' or 'n'"$COLOR_N ;;
+        esac
+      done
+    else
+    CLEAN_BUILD
+    fi
+else # Always clean build folder for next build on build_all
+    CLEAN_BUILD
 fi
 SETUP_BUILD
 BUILD_KERNEL
 INSTALL_MODULES
 PREPARE_NEXT
 echo -e $COLOR_G"Finished building ${DEVICE} ${VER} -- Kernel compilation took"$COLOR_R $BTIME
-echo -e $COLOR_P"Run './copy_finished.sh' to create the flashable AnyKernel zip."
+
+if [ $SINGLEBUILD = "yes" ]; then
+    echo -e $COLOR_P"Run './copy_finished.sh' to create the flashable AnyKernel zip."
+fi

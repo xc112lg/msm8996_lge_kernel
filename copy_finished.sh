@@ -6,6 +6,15 @@
 # It also copies Swan2000 specific AnyKernel3 files and creates a flashable zip.
 # You can simply run ./copy_finished.sh after doing ./build.sh - it knows which device you built for.
 
+# Assume build_all is not being used, will be automatically changed if it is
+SINGLEBUILD="yes"
+
+if [ "$1" = "build_all" ]; then # Will only log to console if build_all is not used
+    SINGLEBUILD="no"
+else
+    SINGLEBUILD="yes"
+fi
+
 RDIR=$(pwd)
 BDIR=${RDIR}/build
 
@@ -50,13 +59,17 @@ INIT_FILE=${AK3DIR}/init
 BANNER=${AK3DIR}/banner
 
 CLEAN_DIR() {
-	echo "Cleaning folder..."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Cleaning folder..."
+    fi
 	rm -rf $DDIR
 	rm -f $RDIR/$OUTDIR/${DEVICE}_${VER}-Swan2000.zip
 }
 
 SETUP_DIR() {
-	echo "Setting up folder..."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Setting up folder..."
+    fi
 	mkdir -p $RDIR/$OUTDIR
 	unzip -q $AK3DIR/ak-root.zip -d $DDIR \
 		|| ABORT "Failed to unzip *ak-root.zip*"
@@ -69,7 +82,9 @@ SETUP_DIR() {
 }
 
 COPY_AK() {
-	echo "Copying AnyKernel3 files..."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Copying AnyKernel3 files..."
+    fi
 	if grep -q 'BETA' $RDIR/VERSION; then
 	  cp $BANNER_BETA $DDIR/banner \
 		|| ABORT "Failed to copy Swan2000's BETA banner"
@@ -85,11 +100,15 @@ COPY_AK() {
 
 COPY_INIT() {
 	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
-	  echo "Copying init file (G6)..."
+      if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Copying init file (G6)..."
+      fi
 	  cp $INIT_FILE_G6 $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy G6's init file"
 	else
-	  echo "Copying init file..."
+      if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Copying init file..."
+      fi
 	  cp $INIT_FILE $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy G5&V20's init file"
 	fi
@@ -98,18 +117,24 @@ COPY_INIT() {
 }
 
 COPY_KERNEL() {
-	echo "Copying kernel image..."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Copying kernel image..."
+    fi
 	cp $KERN_DIR/Image.${COMP}-dtb $DDIR \
 		|| ABORT "Failed to copy kernel image"
 	if grep -q 'CONFIG_MODULES=y' $BDIR/.config; then
-	  echo "Copying kernel modules..."
+      if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Copying kernel modules..."
+      fi
 	  find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/$MDIR \; \
 		|| ABORT "Failed to copy the kernel's modules"
 	fi
 }
 
 ZIP_UP() {
-	echo "Creating AnyKernel3 archive..."
+    if [ $SINGLEBUILD = "yes" ]; then
+	    echo "Creating AnyKernel3 archive..."
+    fi
 	cd $DDIR
 	OUTZIP=$OUTDIR/${DEVICE}_${VER}-Swan2000.zip
 	ZIPPATH=$RDIR/$OUTZIP
@@ -118,7 +143,9 @@ ZIP_UP() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
-echo -e $COLOR_G"Preparing ${DEVICE} ${VER}"$COLOR_N
+if [ $SINGLEBUILD = "yes" ]; then
+    echo -e $COLOR_G"Preparing ${DEVICE} ${VER}"$COLOR_N
+fi
 
 CLEAN_DIR
 SETUP_DIR
