@@ -137,11 +137,12 @@ CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v26=n
 # Disable verity, we don't really need it
 CONFIG_DM_VERITY=n
 
-# ONLY WHEN KERNEL IS DEEMED STABLE: Disable frame pointers, kallsyms
+# ONLY WHEN KERNEL IS DEEMED STABLE: Disable frame pointers, kallsyms, tracing
 # and kernel debug to maximize kernel performance (basically invert those below)
 CONFIG_FRAME_POINTER=y
 CONFIG_KALLSYMS=y
 CONFIG_DEBUG_KERNEL=y
+CONFIG_TRACING=y
 CONFIG_DISABLE_TRACE_PRINTK=n
 
 
