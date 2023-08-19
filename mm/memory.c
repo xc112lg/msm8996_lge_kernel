@@ -2607,13 +2607,18 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
 			return wp_page_reuse(mm, vma, address, page_table, ptl,
 					     orig_pte, old_page, 0, 0, vmf2);
 		}
+		/*
+		 * Ok, we've got the only map reference, and the only
+		 * page count reference, and the page is locked,
+		 * it's dark out, and we're wearing sunglasses. Hit it.
+		 */
 		unlock_page(old_page);
 	} else if (unlikely((vmf2->vma_flags & (VM_WRITE|VM_SHARED)) ==
 					(VM_WRITE|VM_SHARED))) {
 		return wp_page_shared(mm, vma, address, page_table, pmd,
 				      ptl, orig_pte, old_page, vmf2);
 	}
-
+copy:
 	/*
 	 * Ok, we need to copy. Oh, well..
 	 */
