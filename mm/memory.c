@@ -2618,7 +2618,7 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		return wp_page_shared(mm, vma, address, page_table, pmd,
 				      ptl, orig_pte, old_page, vmf2);
 	}
-copy:
+
 	/*
 	 * Ok, we need to copy. Oh, well..
 	 */
