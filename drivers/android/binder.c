@@ -159,7 +159,6 @@ static int binder_set_stop_on_user_error(const char *val,
 module_param_call(stop_on_user_error, binder_set_stop_on_user_error,
 	param_get_int, &binder_stop_on_user_error, 0644);
 
-#ifdef DEBUG
 #define binder_debug(mask, x...) \
 	do { \
 		if (binder_debug_mask & mask) \
@@ -173,16 +172,6 @@ module_param_call(stop_on_user_error, binder_set_stop_on_user_error,
 		if (binder_stop_on_user_error) \
 			binder_stop_on_user_error = 2; \
 	} while (0)
-#else
-static inline void binder_debug(uint32_t mask, const char *fmt, ...)
-{
-}
-static inline void binder_user_error(const char *fmt, ...)
-{
-	if (binder_stop_on_user_error)
-		binder_stop_on_user_error = 2;
-}
-#endif
 
 #define to_flat_binder_object(hdr) \
 	container_of(hdr, struct flat_binder_object, hdr)
@@ -4701,14 +4690,20 @@ static unsigned int binder_poll(struct file *filp,
 	return 0;
 }
 
-static int binder_ioctl_write_read(struct file *filp, unsigned long arg,
+static int binder_ioctl_write_read(struct file *filp,
+				unsigned int cmd, unsigned long arg,
 				struct binder_thread *thread)
 {
 	int ret = 0;
 	struct binder_proc *proc = filp->private_data;
+	unsigned int size = _IOC_SIZE(cmd);
 	void __user *ubuf = (void __user *)arg;
 	struct binder_write_read bwr;
 
+	if (size != sizeof(struct binder_write_read)) {
+		ret = -EINVAL;
+		goto out;
+	}
 	if (copy_from_user(&bwr, ubuf, sizeof(bwr))) {
 		ret = -EFAULT;
 		goto out;
@@ -4874,6 +4869,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	int ret;
 	struct binder_proc *proc = filp->private_data;
 	struct binder_thread *thread;
+	unsigned int size = _IOC_SIZE(cmd);
 	void __user *ubuf = (void __user *)arg;
 
 	/*pr_info("binder_ioctl: %d:%d %x %lx\n",
@@ -4895,7 +4891,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	switch (cmd) {
 	case BINDER_WRITE_READ:
-		ret = binder_ioctl_write_read(filp, arg, thread);
+		ret = binder_ioctl_write_read(filp, cmd, arg, thread);
 		if (ret)
 			goto err;
 		break;
@@ -4938,6 +4934,10 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case BINDER_VERSION: {
 		struct binder_version __user *ver = ubuf;
 
+		if (size != sizeof(struct binder_version)) {
+			ret = -EINVAL;
+			goto err;
+		}
 		if (put_user(BINDER_CURRENT_PROTOCOL_VERSION,
 			     &ver->protocol_version)) {
 			ret = -EINVAL;
