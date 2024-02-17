@@ -217,9 +217,6 @@ CONFIG_ZRAM=y
 CONFIG_ZSMALLOC=y
 CONFIG_CRYPTO_LZ4=y
 
-# Set localversion as Swan2000
-CONFIG_LOCALVERSION="-Swan2K"
-
 # Enable USB fast charge (only works on Swan2000)
 CONFIG_FORCE_FAST_CHARGE=y
 
