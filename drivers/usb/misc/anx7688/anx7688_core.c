@@ -1945,7 +1945,7 @@ static int anx7688_check_firmware(struct anx7688_chip *chip)
 
 	fw = anx7688_firmware_alloc(chip);
 	if (ZERO_OR_NULL_PTR(fw)) {
-		dev_err(cdev, "firmware alloc failed\n");
+		dev_err(cdev, "firmware alloc failed. Skipping fw update check.\n");
 		rc = -ENOMEM;
 		goto out1;
 	}
@@ -2374,8 +2374,7 @@ static int anx7688_probe(struct i2c_client *client,
 
 	ret = anx7688_check_firmware(chip);
 	if (ret) {
-		dev_err(cdev, "fail to request firmware\n");
-                goto err3;
+		dev_err(cdev, "fail to request firmware. Not fatal, ignoring possible fw updates...\n");
 	}
 
 	ret = dp_create_sysfs_interface(&client->dev);
